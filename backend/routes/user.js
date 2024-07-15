@@ -2,7 +2,8 @@ const express = require('express');
 const zod = require("zod")
 const {User} = require("../db")
 const jwt = require("jsonwebtoken")
-const JWT_SECRET = require("../config")
+const JWT_SECRET = require("../config");
+const { authMiddleware } = require('../middleware');
 const router = express.Router();
 
 // SIGNUP Schema
@@ -89,6 +90,55 @@ router.post("/signin", async(req,res) =>{
     })
 })
 
+const updateBody = zod.object({
+    password : zod.string().optional(),
+    firstname : zod.string().optional(),
+    lastname : zod.string().optional(),
+
+})
+
+router.put("/", authMiddleware, async(req, res) => {
+    const {success} = updateBody.safeParse(req.body);
+    if(!success){
+        res.status(411).json({
+            message : "Error while updating information."
+        })
+    }
+
+    await User.updateOne(req.body, {
+        id : req.userId
+    })
+
+    res.json({
+        message : "!! Updated Successfully !!"
+    })
+})
+
+router.get("/bulk", async(req,res) => {
+    const filter = req.query.filter || "";
+
+    const users = await User.find({
+        $or : [{
+            firstName : {
+                "$regex" : filter
+            }
+        }, {
+            lastName : {
+                "$regex" : filter
+            }
+        }]
+    })
+
+    res.json({
+        user : users.map(user => ({
+            username : user.username,
+            firstName : user.firstName,
+            lastName : user.lastName,
+            _id : user._id
+        }))
+    })
+})
+
 module.exports = router;
 
 
@@ -99,6 +149,9 @@ module.exports = router;
 // `const jwt = require("jsonwebtoken") // Import the jsonwebtoken library for token handling.
 // `const JWT_SECRET = require("../config") // Import the JWT secret key from the config file.
 // `const router = express.Router(); // Create a new Express router instance.
+
+
+
 // `// SIGNUP Schema
 // `const signupSchema = zod.object({ // Define a Zod schema for signup validation.
 // ` username : zod.string(), // Username must be a string.
@@ -135,6 +188,10 @@ module.exports = router;
 // ` token : token
 // ` })
 // `})
+
+
+
+
 // `// SIGNIN Schema
 // `const signinSchema = zod.object({ // Define a Zod schema for signin validation.
 // ` username : zod.string(), // Username must be a string.
@@ -167,4 +224,68 @@ module.exports = router;
 // ` message : "No Such User Exists"
 // ` })
 // `})
+
+
+
+
+// Define a Zod schema for update request body with optional fields.
+// const updateBody = zod.object({
+//     password : zod.string().optional(), // Optional `password` field of type string.
+//     firstname : zod.string().optional(), // Optional `firstname` field of type string.
+//     lastname : zod.string().optional(), // Optional `lastname` field of type string.
+// });
+// // Define a PUT route handler with authentication middleware for updating user information.
+// router.put("/", authMiddleware, async(req, res) => {
+//     // Validate the request body against the `updateBody` schema.
+//     const {success} = updateBody.safeParse(req.body);
+//     if(!success){
+//         // Respond with a 411 status and error message if validation fails.
+//         res.status(411).json({
+//             message : "Error while updating information."
+//         });
+//     }
+//     // Update the user information in the database based on `req.body`.
+//     await User.updateOne(req.body, {
+//         id : req.userId // Update the user based on `userId` from authentication middleware.
+//     });
+//     // Respond with a success message after updating successfully.
+//     res.json({
+//         message : "!! Updated Successfully !!"
+//     });
+// });
+
+
+
+// Define a GET route handler for the path `/bulk`.
+// router.get("/bulk", async(req,res) => {
+//     // Get the `filter` query parameter from the request, defaulting to an empty string if not provided.
+//     const filter = req.query.filter || "";
+//     // Find users in the `User` collection that match the filter.
+//     const users = await User.find({
+//         // Use the `$or` operator to specify multiple conditions.
+//         $or : [{
+//             // Specify the first condition: `firstName` field.
+//             firstName : {
+//                 "$regex" : filter // Use a regular expression to match the `firstName` against the filter.
+//             }
+//         }, {
+//             // Specify the second condition: `lastName` field.
+//             lastName : {
+//                 "$regex" : filter // Use a regular expression to match the `lastName` against the filter.
+//             }
+//         }]
+//     });
+//     // Send a JSON response to the client.
+//     res.json({
+//         // Map the `users` array to a new array with selected fields.
+//         user : users.map(user => ({
+//             username : user.username, // Include the `username` field in the response.
+//             firstName : user.firstName, // Include the `firstName` field in the response.
+//             lastName : user.lastName, // Include the `lastName` field in the response.
+//             _id : user._id // Include the `_id` field in the response.
+//         }))
+//     });
+// });
+
+
 // `module.exports = router; // Export the router module.

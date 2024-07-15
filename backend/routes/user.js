@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken")
 const JWT_SECRET = require("../config")
 const router = express.Router();
 
-// SIGNUP ROUTER
+// SIGNUP Schema
 const signupSchema = zod.object({
     username : zod.string(),
     password : zod.string(),
@@ -13,6 +13,7 @@ const signupSchema = zod.object({
     lastname : zod.string()
 })
 
+// SIGNUP Router
 router.post("/signup", async(req,res) => {
     const body = req.body;
 
@@ -26,21 +27,21 @@ router.post("/signup", async(req,res) => {
         })
     }
 
-    const user = User.findOne({
+    const userexists = User.findOne({
         username : body.username
     })
 
-    if(user._id){ // this means user with username is already in the db
+    if(userexists._id){ // if true => this means user with username is already in the db
         return res.json({
             message : "Username already taken."
         })
     }
 
     // Saving the user data in DB
-    const dbUser = await User.create(body);
+    const user = await User.create(body);
 
     const token = jwt.sign({
-        userId : dbUser._id
+        userId : user._id
     }, JWT_SECRET);
 
     res.json({
@@ -48,6 +49,44 @@ router.post("/signup", async(req,res) => {
         token : token
     })
 
+})
+
+// SIGNIN Schema 
+const signinSchema = zod.object({
+    username : zod.string(),
+    password : zod.string()
+})
+
+// SINGIN Router
+router.post("/signin", async(req,res) =>{
+    const {success} = signinSchema.safeParse(req.body)
+    if(!success){
+        return res.status(411).json({
+            message : "Incorrect Inputs"
+        })
+    };
+
+    // checking if the userexists in the database.
+    const user = await User.findOne({ 
+        username : req.body.username,
+        password : req.body.password
+    });
+
+    if(user){
+        const token = jwt.sign({
+            userId : user._id
+        }, JWT_SECRET);
+
+        res.json({
+            token : token
+        })
+        return;
+    }
+
+    // If (user) is false
+    res.status(411).json({
+        message : "No Such User Exists"
+    })
 })
 
 module.exports = router;

@@ -43,7 +43,6 @@ module.exports = {
 
 //     try {
 //         const decoded = jwt.verify(token, JWT_SECRET); // Verify the token using the secret key.
-
 //         if (decoded.userId) { // Check if the decoded token contains a userId.
 //             req.userId = decoded.userId; // Attach the userId to the request object.
 //             next(); // Proceed to the next middleware or route handler.
@@ -54,7 +53,6 @@ module.exports = {
 //         return res.status(403).json({}); // Respond with 403 Forbidden if token verification fails.
 //     }
 // };
-
 // module.exports = {
 //     authMiddleware // Export the authentication middleware.
 // };

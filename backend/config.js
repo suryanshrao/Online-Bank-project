@@ -1,3 +1,3 @@
 const JWT_SECRET = "SuryanshRao"
 
-module.exports = JWT_SECRET
+module.exports = {JWT_SECRET}

@@ -1,14 +1,16 @@
 const express = require('express');
+
+const router = express.Router();
 const zod = require("zod")
 const {User, Account} = require("../db")
 const jwt = require("jsonwebtoken")
-const JWT_SECRET = require("../config");
+const {JWT_SECRET} = require("../config");
 const { authMiddleware } = require('../middleware');
-const router = express.Router();
+
 
 // SIGNUP Schema
 const signupSchema = zod.object({
-    username : zod.string(),
+    username : zod.string().email(),
     password : zod.string(),
     firstName : zod.string(),
     lastName : zod.string()
@@ -23,7 +25,7 @@ router.post("/signup", async(req,res) => {
 
     // If the {success} is false
     if(!success){
-        return res.json({
+        return res.status(411).json({
             message : "Username already taken / Incorrect Input"
         })
     }
@@ -33,16 +35,23 @@ router.post("/signup", async(req,res) => {
     })
 
     if(userexists){ // if true => this means user with username is already in the db
-        return res.json({
+        return res.status(411).json({
             message : "Username already taken."
         })
     }
 
     // Saving the user data in DB
-    const user = await User.create(body);
+    const user = await User.create({
+        username: req.body.username,
+        password: req.body.password,
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+    });
+
+    const userId = user._id;
 
     await Account.create({
-        user,
+        userId,
         balance : 1 + Math.random() * 10000
     })
 
@@ -59,7 +68,7 @@ router.post("/signup", async(req,res) => {
 
 // SIGNIN Schema 
 const signinSchema = zod.object({
-    username : zod.string(),
+    username : zod.string().email(),
     password : zod.string()
 })
 
@@ -97,8 +106,8 @@ router.post("/signin", async(req,res) =>{
 
 const updateBody = zod.object({
     password : zod.string().optional(),
-    firstname : zod.string().optional(),
-    lastname : zod.string().optional(),
+    firstName : zod.string().optional(),
+    lastName : zod.string().optional(),
 
 })
 

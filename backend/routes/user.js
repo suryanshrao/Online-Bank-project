@@ -1,6 +1,6 @@
 const express = require('express');
 const zod = require("zod")
-const {User} = require("../db")
+const {User, Account} = require("../db")
 const jwt = require("jsonwebtoken")
 const JWT_SECRET = require("../config");
 const { authMiddleware } = require('../middleware');
@@ -8,7 +8,7 @@ const router = express.Router();
 
 // SIGNUP Schema
 const signupSchema = zod.object({
-    username : zod.string(),
+    username : zod.string().email(),
     password : zod.string(),
     firstname : zod.string(),
     lastname : zod.string()
@@ -19,16 +19,16 @@ router.post("/signup", async(req,res) => {
     const body = req.body;
 
     // Checking whether user is sending the right inputs/username already exists
-    const {success} = signupSchema.safeParse(req.body);
+    const parsed = signupSchema.safeParse(req.body);
 
     // If the {success} is false
-    if(!success){
+    if(!parsed.success){
         return res.json({
             message : "Username already taken / Incorrect Input"
         })
     }
 
-    const userexists = User.findOne({
+    const userexists = await User.findOne({
         username : body.username
     })
 
@@ -40,6 +40,11 @@ router.post("/signup", async(req,res) => {
 
     // Saving the user data in DB
     const user = await User.create(body);
+
+    await Account.create({
+        user,
+        balance : 1 + Math.random() * 10000
+    })
 
     const token = jwt.sign({
         userId : user._id

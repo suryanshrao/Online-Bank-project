@@ -10,8 +10,8 @@ const router = express.Router();
 const signupSchema = zod.object({
     username : zod.string(),
     password : zod.string(),
-    firstname : zod.string(),
-    lastname : zod.string()
+    firstName : zod.string(),
+    lastName : zod.string()
 })
 
 // SIGNUP Router
@@ -32,7 +32,7 @@ router.post("/signup", async(req,res) => {
         username : body.username
     })
 
-    if(userexists._id){ // if true => this means user with username is already in the db
+    if(userexists){ // if true => this means user with username is already in the db
         return res.json({
             message : "Username already taken."
         })

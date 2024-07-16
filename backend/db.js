@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 mongoose.connect("mongodb+srv://suryanshrao01:vyvo5myADrxZCY9G@gettingstarted.f5gavju.mongodb.net/Online-Bank-Project")
 
 const userSchema = new mongoose.Schema({
-    userId: {
-        type: String,
-        required: true
-      },
     username: {
         type: String,
         required : true,

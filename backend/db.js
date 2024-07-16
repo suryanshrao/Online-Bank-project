@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://localhost:27017/Online-Bank-Project")
+mongoose.connect("mongodb+srv://suryanshrao01:vyvo5myADrxZCY9G@gettingstarted.f5gavju.mongodb.net/?retryWrites=true&w=majority&appName=GettingStartedOnline-Bank-Project")
 
 const userSchema = new mongoose.Schema({
     username: {

@@ -19,10 +19,10 @@ router.post("/signup", async(req,res) => {
     const body = req.body;
 
     // Checking whether user is sending the right inputs/username already exists
-    const parsed = signupSchema.safeParse(req.body);
+    const success = signupSchema.safeParse(req.body);
 
     // If the {success} is false
-    if(!parsed.success){
+    if(!success){
         return res.json({
             message : "Username already taken / Incorrect Input"
         })
